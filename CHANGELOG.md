@@ -7,8 +7,25 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- App icon, Android adaptive icon, and splash screen generated from the
+  high-resolution Mulvane EMS logo.
+- Store identity in `app.json`: iOS `bundleIdentifier` and Android `package`
+  (`com.mulvaneems.protocols`), plus version/build numbers.
+- EAS Build configuration (`eas.json`) with an internal-distribution `preview`
+  profile, and `docs/DEPLOYMENT.md` — an internal distribution guide.
+
+### Changed
+- Home-screen logo replaced with the high-resolution badge.
+
+### Fixed
+- Metro bundling failure `Cannot find module 'babel-preset-expo'` — added
+  `babel-preset-expo` as a dependency.
+- Runtime TurboModule crash in Expo Go — pinned `react-native-worklets` to 0.5.1
+  to match the version bundled in Expo Go SDK 54.
+
 _Planned: in-protocol full-text search, favorites & recently-viewed, night/dark
-mode, a high-resolution app icon + splash, and an "open already zoomed" option._
+mode, an "open already zoomed" option._
 
 ## [0.1.0] - 2026-06-11
 
