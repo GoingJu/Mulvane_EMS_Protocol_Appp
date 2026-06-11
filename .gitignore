@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Lockfile differs per machine (Windows vs Linux); don't track it.
+package-lock.json
