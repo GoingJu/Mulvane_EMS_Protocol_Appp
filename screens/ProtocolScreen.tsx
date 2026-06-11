@@ -1,6 +1,20 @@
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+} from 'react-native';
 import { findProtocol, findCategory } from '../data/protocols';
+import { PROTOCOL_PAGES } from '../data/pageMap';
+import { PAGE_IMAGES } from '../assets/pages';
+import PageViewer from '../components/PageViewer';
 import { theme } from '../theme';
+
+const RATIO = 1650 / 1275; // height / width of the rendered pages
 
 type Props = {
   protocolId: string;
@@ -11,6 +25,13 @@ export default function ProtocolScreen({ protocolId, onBack }: Props) {
   const hit = findProtocol(protocolId);
   const category = hit ? findCategory(hit.categoryId) : undefined;
   const accent = category?.accent ?? theme.colors.primary;
+  const pages = PROTOCOL_PAGES[protocolId] ?? [];
+
+  const { width } = useWindowDimensions();
+  const imgW = width - theme.space(8);
+  const imgH = imgW * RATIO;
+
+  const [viewerStart, setViewerStart] = useState<number | null>(null);
 
   if (!hit) {
     return (
@@ -34,18 +55,46 @@ export default function ProtocolScreen({ protocolId, onBack }: Props) {
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
-        {hit.protocol.body ? (
-          <Text style={styles.bodyText}>{hit.protocol.body}</Text>
-        ) : (
+        <View style={styles.disclaimer}>
+          <Text style={styles.disclaimerText}>
+            Source: Mulvane EMS Protocols, effective May 1, 2022. Always verify
+            against current protocols and medical direction. Tap a page to zoom.
+          </Text>
+        </View>
+
+        {pages.length === 0 ? (
           <View style={styles.placeholder}>
-            <Text style={styles.placeholderTitle}>Content coming soon</Text>
+            <Text style={styles.placeholderTitle}>No page on file</Text>
             <Text style={styles.placeholderText}>
-              This protocol’s steps, dosing, and diagrams will be added here from
-              the official Mulvane EMS Protocols document.
+              This protocol isn’t mapped to a source page yet.
             </Text>
           </View>
+        ) : (
+          pages.map((p, i) => (
+            <Pressable
+              key={p}
+              style={styles.pageCard}
+              onPress={() => setViewerStart(i)}
+            >
+              <Image
+                source={PAGE_IMAGES[p]}
+                style={{ width: imgW, height: imgH }}
+                resizeMode="contain"
+              />
+              <Text style={styles.pageLabel}>Page {p} · tap to zoom</Text>
+            </Pressable>
+          ))
         )}
       </ScrollView>
+
+      {viewerStart !== null && (
+        <PageViewer
+          key={viewerStart}
+          pages={pages}
+          startIndex={viewerStart}
+          onClose={() => setViewerStart(null)}
+        />
+      )}
     </View>
   );
 }
@@ -57,7 +106,29 @@ const styles = StyleSheet.create({
   crumb: { color: '#ffffffcc', fontSize: 13 },
   title: { color: '#fff', fontSize: 24, fontWeight: '800', marginTop: theme.space(1) },
   body: { padding: theme.space(4) },
-  bodyText: { fontSize: 17, lineHeight: 26, color: theme.colors.text },
+  disclaimer: {
+    backgroundColor: '#fef3c7',
+    borderRadius: theme.radius,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    padding: theme.space(3),
+    marginBottom: theme.space(4),
+  },
+  disclaimerText: { fontSize: 12.5, lineHeight: 18, color: '#92400e' },
+  pageCard: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: theme.space(2),
+    marginBottom: theme.space(4),
+    alignItems: 'center',
+  },
+  pageLabel: {
+    fontSize: 12,
+    color: theme.colors.muted,
+    paddingTop: theme.space(2),
+  },
   placeholder: {
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius,
