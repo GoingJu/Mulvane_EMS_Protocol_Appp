@@ -38,7 +38,7 @@ export default function HomeScreen({ onOpenCategory, onOpenProtocol }: Props) {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.logoSub}>Field Protocols</Text>
+        <Text style={styles.logoSub}>Field Protocols · v2</Text>
       </View>
 
       <SearchBar value={query} onChange={setQuery} />
@@ -90,7 +90,7 @@ export default function HomeScreen({ onOpenCategory, onOpenProtocol }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: theme.space(4) },
   logoBox: { alignItems: 'center', paddingVertical: theme.space(5) },
-  logo: { width: 110, aspectRatio: 1374 / 891 },
+  logo: { width: 90, aspectRatio: 1374 / 891 },
   logoSub: { fontSize: 15, color: theme.colors.muted, marginTop: theme.space(2) },
   list: { marginTop: theme.space(4) },
   categoryCard: {
