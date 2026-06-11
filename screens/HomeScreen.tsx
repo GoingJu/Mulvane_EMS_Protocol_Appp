@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   View,
   Text,
+  Image,
   Pressable,
   FlatList,
   StyleSheet,
@@ -30,10 +31,13 @@ export default function HomeScreen({ onOpenCategory, onOpenProtocol }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* Logo placeholder — swap for the official Mulvane EMS logo asset later */}
+      {/* Official Mulvane EMS logo (extracted from the protocols PDF) */}
       <View style={styles.logoBox}>
-        <Text style={styles.logoStar}>✚</Text>
-        <Text style={styles.logoTitle}>MULVANE EMS</Text>
+        <Image
+          source={require('../assets/logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
         <Text style={styles.logoSub}>Field Protocols</Text>
       </View>
 
@@ -86,15 +90,8 @@ export default function HomeScreen({ onOpenCategory, onOpenProtocol }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: theme.space(4) },
   logoBox: { alignItems: 'center', paddingVertical: theme.space(5) },
-  logoStar: { fontSize: 48, color: theme.colors.primary },
-  logoTitle: {
-    fontSize: 26,
-    fontWeight: '800',
-    letterSpacing: 2,
-    color: theme.colors.text,
-    marginTop: theme.space(1),
-  },
-  logoSub: { fontSize: 15, color: theme.colors.muted, marginTop: theme.space(1) },
+  logo: { width: 240, aspectRatio: 1374 / 891 },
+  logoSub: { fontSize: 15, color: theme.colors.muted, marginTop: theme.space(2) },
   list: { marginTop: theme.space(4) },
   categoryCard: {
     borderRadius: theme.radius,
