@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import HomeScreen from './screens/HomeScreen';
 import CategoryScreen from './screens/CategoryScreen';
@@ -18,6 +19,7 @@ export default function App() {
   const [nav, setNav] = useState<Nav>({ screen: 'home' });
 
   return (
+    <GestureHandlerRootView style={styles.root}>
     <SafeAreaView style={styles.root}>
       <StatusBar style="dark" />
       {nav.screen === 'home' && (
@@ -44,6 +46,7 @@ export default function App() {
         />
       )}
     </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 

@@ -3,17 +3,18 @@ import {
   Modal,
   View,
   Text,
-  Image,
   Pressable,
-  ScrollView,
   StyleSheet,
-  useWindowDimensions,
+  LayoutChangeEvent,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import ZoomableImage from './ZoomableImage';
 import { PAGE_IMAGES } from '../assets/pages';
 import { theme } from '../theme';
 
-// Rendered page aspect ratio (height / width) from the 1275x1650 source images.
-const RATIO = 1650 / 1275;
+// Natural size of the rendered pages.
+const PAGE_W = 1275;
+const PAGE_H = 1650;
 
 type Props = {
   pages: number[];
@@ -21,28 +22,28 @@ type Props = {
   onClose: () => void;
 };
 
-// Full-screen page viewer with zoom (buttons work on every platform; iOS also
-// supports pinch via the ScrollView). Dependency-free so it runs in Expo Go.
 export default function PageViewer({ pages, startIndex, onClose }: Props) {
-  const { width } = useWindowDimensions();
   const [index, setIndex] = useState(startIndex);
-  const [scale, setScale] = useState(1);
-
+  const [area, setArea] = useState({ w: 0, h: 0 });
   const page = pages[index];
-  const imgW = width * scale;
-  const imgH = imgW * RATIO;
 
-  const zoom = (delta: number) =>
-    setScale((s) => Math.min(4, Math.max(1, +(s + delta).toFixed(2))));
-
-  const go = (dir: number) => {
-    setIndex((i) => Math.min(pages.length - 1, Math.max(0, i + dir)));
-    setScale(1);
+  const onLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setArea({ w: width, h: height });
   };
+
+  // Fit the whole page inside the available stage (contain).
+  let fitW = area.w;
+  let fitH = area.w * (PAGE_H / PAGE_W);
+  if (fitH > area.h) {
+    fitH = area.h;
+    fitW = area.h * (PAGE_W / PAGE_H);
+  }
 
   return (
     <Modal visible animationType="fade" onRequestClose={onClose}>
-      <View style={styles.root}>
+      {/* gesture-handler needs its own root inside a RN Modal */}
+      <GestureHandlerRootView style={styles.root}>
         <View style={styles.bar}>
           <Pressable onPress={onClose} hitSlop={10}>
             <Text style={styles.barBtn}>✕ Close</Text>
@@ -54,59 +55,47 @@ export default function PageViewer({ pages, startIndex, onClose }: Props) {
           <View style={{ width: 56 }} />
         </View>
 
-        <ScrollView
-          style={styles.flex}
-          contentContainerStyle={styles.center}
-          maximumZoomScale={4}
-          minimumZoomScale={1}
-        >
-          <ScrollView horizontal contentContainerStyle={styles.center}>
-            <Image
+        <View style={styles.stage} onLayout={onLayout}>
+          {area.w > 0 && (
+            <ZoomableImage
+              key={`${page}-${Math.round(area.w)}`}
               source={PAGE_IMAGES[page]}
-              style={{ width: imgW, height: imgH }}
-              resizeMode="contain"
+              width={fitW}
+              height={fitH}
             />
-          </ScrollView>
-        </ScrollView>
-
-        <View style={styles.controls}>
-          <Pressable style={styles.ctrl} onPress={() => zoom(-0.5)}>
-            <Text style={styles.ctrlTxt}>－</Text>
-          </Pressable>
-          <Pressable style={styles.ctrl} onPress={() => setScale(1)}>
-            <Text style={styles.ctrlTxt}>Reset</Text>
-          </Pressable>
-          <Pressable style={styles.ctrl} onPress={() => zoom(0.5)}>
-            <Text style={styles.ctrlTxt}>＋</Text>
-          </Pressable>
-          {pages.length > 1 && (
-            <>
-              <Pressable
-                style={[styles.ctrl, index === 0 && styles.ctrlOff]}
-                disabled={index === 0}
-                onPress={() => go(-1)}
-              >
-                <Text style={styles.ctrlTxt}>‹ Prev</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.ctrl, index === pages.length - 1 && styles.ctrlOff]}
-                disabled={index === pages.length - 1}
-                onPress={() => go(1)}
-              >
-                <Text style={styles.ctrlTxt}>Next ›</Text>
-              </Pressable>
-            </>
           )}
         </View>
-      </View>
+
+        <View style={styles.footer}>
+          {pages.length > 1 && (
+            <Pressable
+              style={[styles.navBtn, index === 0 && styles.off]}
+              disabled={index === 0}
+              onPress={() => setIndex((i) => Math.max(0, i - 1))}
+            >
+              <Text style={styles.navTxt}>‹ Prev</Text>
+            </Pressable>
+          )}
+          <Text style={styles.hint}>Pinch to zoom · double-tap to reset</Text>
+          {pages.length > 1 && (
+            <Pressable
+              style={[styles.navBtn, index === pages.length - 1 && styles.off]}
+              disabled={index === pages.length - 1}
+              onPress={() =>
+                setIndex((i) => Math.min(pages.length - 1, i + 1))
+              }
+            >
+              <Text style={styles.navTxt}>Next ›</Text>
+            </Pressable>
+          )}
+        </View>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#111827' },
-  flex: { flex: 1 },
-  center: { justifyContent: 'center', alignItems: 'center', flexGrow: 1 },
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -118,22 +107,26 @@ const styles = StyleSheet.create({
   },
   barBtn: { color: '#fff', fontSize: 16, fontWeight: '600' },
   barTitle: { color: '#fff', fontSize: 15 },
-  controls: {
-    flexDirection: 'row',
+  stage: {
+    flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
-    flexWrap: 'wrap',
-    gap: theme.space(2),
+    overflow: 'hidden',
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: theme.space(3),
     backgroundColor: '#000',
   },
-  ctrl: {
+  navBtn: {
     backgroundColor: '#374151',
     paddingVertical: theme.space(2),
     paddingHorizontal: theme.space(4),
     borderRadius: 10,
-    minWidth: 52,
-    alignItems: 'center',
   },
-  ctrlOff: { opacity: 0.4 },
-  ctrlTxt: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  navTxt: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  off: { opacity: 0.4 },
+  hint: { color: '#9ca3af', fontSize: 12, flex: 1, textAlign: 'center' },
 });
