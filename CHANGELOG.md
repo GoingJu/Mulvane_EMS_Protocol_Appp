@@ -8,6 +8,10 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **In-protocol full-text search.** The search bar now matches the user's query
+  against the text *inside* each protocol (not just titles), showing a highlighted
+  snippet of the match. Title matches are listed first. Built offline from the PDF
+  text via `scripts/build_search_index.py` → `data/searchText.ts`.
 - App icon, Android adaptive icon, and splash screen generated from the
   high-resolution Mulvane EMS logo.
 - Store identity in `app.json`: iOS `bundleIdentifier` and Android `package`
@@ -24,8 +28,8 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 - Runtime TurboModule crash in Expo Go — pinned `react-native-worklets` to 0.5.1
   to match the version bundled in Expo Go SDK 54.
 
-_Planned: in-protocol full-text search, favorites & recently-viewed, night/dark
-mode, an "open already zoomed" option._
+_Planned: favorites & recently-viewed, night/dark mode, an "open already zoomed"
+option, optional OCR of image-only algorithm pages for search._
 
 ## [0.1.0] - 2026-06-11
 

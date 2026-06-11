@@ -8,8 +8,26 @@ import {
   StyleSheet,
 } from 'react-native';
 import { CATEGORIES, SEARCH_INDEX, SearchHit } from '../data/protocols';
+import { PROTOCOL_TEXT } from '../data/searchText';
 import SearchBar from '../components/SearchBar';
 import { theme } from '../theme';
+
+type Snippet = { before: string; match: string; after: string };
+type Result = { hit: SearchHit; snippet: Snippet | null };
+
+// Build a short highlighted excerpt around the first match of `q` in `body`.
+function makeSnippet(body: string, q: string): Snippet | null {
+  const i = body.toLowerCase().indexOf(q);
+  if (i < 0) return null;
+  const radius = 40;
+  const start = Math.max(0, i - radius);
+  const end = Math.min(body.length, i + q.length + radius);
+  return {
+    before: (start > 0 ? '… ' : '') + body.slice(start, i),
+    match: body.slice(i, i + q.length),
+    after: body.slice(i + q.length, end) + (end < body.length ? ' …' : ''),
+  };
+}
 
 type Props = {
   onOpenCategory: (categoryId: string) => void;
@@ -19,12 +37,21 @@ type Props = {
 export default function HomeScreen({ onOpenCategory, onOpenProtocol }: Props) {
   const [query, setQuery] = useState('');
 
-  const results = useMemo<SearchHit[]>(() => {
+  const results = useMemo<Result[]>(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
-    return SEARCH_INDEX.filter((h) =>
-      h.protocol.title.toLowerCase().includes(q),
-    ).slice(0, 30);
+    const titleHits: Result[] = [];
+    const bodyHits: Result[] = [];
+    for (const hit of SEARCH_INDEX) {
+      if (hit.protocol.title.toLowerCase().includes(q)) {
+        titleHits.push({ hit, snippet: null });
+        continue;
+      }
+      const snippet = makeSnippet(PROTOCOL_TEXT[hit.protocol.id] ?? '', q);
+      if (snippet) bodyHits.push({ hit, snippet });
+    }
+    // Title matches first, then in-protocol (body) matches.
+    return [...titleHits, ...bodyHits].slice(0, 40);
   }, [query]);
 
   const searching = query.trim().length > 0;
@@ -47,7 +74,7 @@ export default function HomeScreen({ onOpenCategory, onOpenProtocol }: Props) {
         <FlatList
           style={styles.list}
           data={results}
-          keyExtractor={(h) => h.protocol.id}
+          keyExtractor={(r) => r.hit.protocol.id}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
             <Text style={styles.empty}>No protocols match “{query}”.</Text>
@@ -55,13 +82,20 @@ export default function HomeScreen({ onOpenCategory, onOpenProtocol }: Props) {
           renderItem={({ item }) => (
             <Pressable
               style={styles.resultRow}
-              onPress={() => onOpenProtocol(item.protocol.id)}
+              onPress={() => onOpenProtocol(item.hit.protocol.id)}
             >
-              <Text style={styles.resultTitle}>{item.protocol.title}</Text>
+              <Text style={styles.resultTitle}>{item.hit.protocol.title}</Text>
               <Text style={styles.resultMeta}>
-                {item.categoryTitle}
-                {item.sectionTitle ? ` · ${item.sectionTitle}` : ''}
+                {item.hit.categoryTitle}
+                {item.hit.sectionTitle ? ` · ${item.hit.sectionTitle}` : ''}
               </Text>
+              {item.snippet && (
+                <Text style={styles.snippet} numberOfLines={2}>
+                  {item.snippet.before}
+                  <Text style={styles.snippetMatch}>{item.snippet.match}</Text>
+                  {item.snippet.after}
+                </Text>
+              )}
             </Pressable>
           )}
         />
@@ -110,5 +144,7 @@ const styles = StyleSheet.create({
   },
   resultTitle: { fontSize: 17, fontWeight: '600', color: theme.colors.text },
   resultMeta: { fontSize: 13, color: theme.colors.muted, marginTop: theme.space(1) },
+  snippet: { fontSize: 13, color: theme.colors.muted, marginTop: theme.space(2), lineHeight: 18 },
+  snippetMatch: { backgroundColor: '#fde68a', color: '#111827', fontWeight: '700' },
   empty: { textAlign: 'center', color: theme.colors.muted, marginTop: theme.space(6) },
 });

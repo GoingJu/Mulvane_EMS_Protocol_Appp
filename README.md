@@ -99,10 +99,11 @@ When a new version of the protocols PDF is issued:
 
 1. Replace `source/Mulvane-EMS-Protocols.pdf`.
 2. If page numbers shifted, update `scripts/protocol_start_pages.json`.
-3. Regenerate images + lookup tables:
+3. Regenerate images, lookup tables, and the search index:
    ```bash
    pip install pymupdf      # first time only
-   python scripts/render_pages.py
+   python scripts/render_pages.py        # page images + pageMap.ts
+   python scripts/build_search_index.py  # full-text search index (searchText.ts)
    ```
 4. Review the diff, commit, and push. Always have medical direction confirm the content.
 
@@ -112,7 +113,6 @@ page in `scripts/protocol_start_pages.json` before re-running the script).
 ## Roadmap
 
 - True in-list pinch-zoom / open-already-zoomed option
-- In-protocol full-text search (text already extracted from the PDF)
 - Favorites & recently-viewed
 - Night/dark mode
 - Proper app icon + splash from a high-resolution logo
