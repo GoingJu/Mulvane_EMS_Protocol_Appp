@@ -38,7 +38,7 @@ export default function HomeScreen({ onOpenCategory, onOpenProtocol }: Props) {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.logoSub}>Field Protocols · v3</Text>
+        <Text style={styles.logoSub}>Field Protocols</Text>
       </View>
 
       <SearchBar value={query} onChange={setQuery} />
