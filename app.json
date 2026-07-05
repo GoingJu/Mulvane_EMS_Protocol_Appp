@@ -4,6 +4,7 @@
     "slug": "MulvaneEMSProtocols",
     "version": "1.0.0",
     "orientation": "portrait",
+    "platforms": ["ios", "android"],
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
@@ -31,8 +32,11 @@
         }
       ]
     ],
-    "web": {
-      "favicon": "./assets/favicon.png"
-    }
+    "extra": {
+      "eas": {
+        "projectId": "b09765b1-0776-438c-a2ed-2215d4756546"
+      }
+    },
+    "owner": "morganelle"
   }
 }

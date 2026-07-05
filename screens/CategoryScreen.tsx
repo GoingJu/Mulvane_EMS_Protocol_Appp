@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
-import { View, Text, Pressable, SectionList, StyleSheet } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { View, Text, Pressable, SectionList, StyleSheet, BackHandler } from 'react-native';
 import { findCategory } from '../data/protocols';
 import SearchBar from '../components/SearchBar';
-import { theme } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { ThemeColors } from '../theme';
 
 type Props = {
   categoryId: string;
@@ -17,6 +18,16 @@ export default function CategoryScreen({
 }: Props) {
   const category = findCategory(categoryId);
   const [query, setQuery] = useState('');
+  const { colors, space, radius } = useTheme();
+  const styles = useMemo(() => makeStyles(colors, space, radius), [colors, space, radius]);
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      onBack();
+      return true;
+    });
+    return () => sub.remove();
+  }, [onBack]);
 
   const sections = useMemo(() => {
     if (!category) return [];
@@ -90,35 +101,37 @@ export default function CategoryScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.bg },
-  header: { paddingTop: theme.space(12), padding: theme.space(4) },
-  back: { color: '#ffffffdd', fontSize: 16, marginBottom: theme.space(2) },
-  headerTitle: { color: '#fff', fontSize: 26, fontWeight: '800' },
-  headerSub: { color: '#ffffffcc', fontSize: 14, marginTop: theme.space(1) },
-  body: { flex: 1, padding: theme.space(4) },
-  list: { marginTop: theme.space(3) },
-  sectionHeader: {
-    fontSize: 13,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    color: theme.colors.muted,
-    marginTop: theme.space(4),
-    marginBottom: theme.space(2),
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    padding: theme.space(4),
-    marginBottom: theme.space(2),
-  },
-  rowTitle: { fontSize: 17, color: theme.colors.text, flex: 1 },
-  chevron: { fontSize: 22, color: theme.colors.muted, marginLeft: theme.space(2) },
-  empty: { textAlign: 'center', color: theme.colors.muted, marginTop: theme.space(8) },
-});
+function makeStyles(colors: ThemeColors, space: (n: number) => number, radius: number) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.bg },
+    header: { paddingTop: space(12), padding: space(4) },
+    back: { color: '#ffffffdd', fontSize: 16, marginBottom: space(2) },
+    headerTitle: { color: '#fff', fontSize: 26, fontWeight: '800' },
+    headerSub: { color: '#ffffffcc', fontSize: 14, marginTop: space(1) },
+    body: { flex: 1, padding: space(4) },
+    list: { marginTop: space(3) },
+    sectionHeader: {
+      fontSize: 13,
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      color: colors.muted,
+      marginTop: space(4),
+      marginBottom: space(2),
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.card,
+      borderRadius: radius,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: space(4),
+      marginBottom: space(2),
+    },
+    rowTitle: { fontSize: 17, color: colors.text, flex: 1 },
+    chevron: { fontSize: 22, color: colors.muted, marginLeft: space(2) },
+    empty: { textAlign: 'center', color: colors.muted, marginTop: space(8) },
+  });
+}

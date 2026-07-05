@@ -71,8 +71,9 @@ export default function ZoomableImage({ source, width, height }: Props) {
       }
     });
 
-  // Pinch + pan run together; double-tap wins over them when it fires.
-  const gesture = Gesture.Exclusive(doubleTap, Gesture.Simultaneous(pinch, pan));
+  // Race (not Exclusive) so pinch/pan can activate immediately instead of
+  // waiting ~500ms for the double-tap gesture to fail first.
+  const gesture = Gesture.Race(Gesture.Simultaneous(pinch, pan), doubleTap);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [

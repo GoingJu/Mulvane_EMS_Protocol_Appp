@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import HomeScreen from './screens/HomeScreen';
 import CategoryScreen from './screens/CategoryScreen';
 import ProtocolScreen from './screens/ProtocolScreen';
-import { theme } from './theme';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
 // Minimal, dependency-free navigation via app state. This keeps the first
 // milestone runnable with zero extra packages; we can swap in Expo Router
@@ -15,13 +15,14 @@ type Nav =
   | { screen: 'category'; categoryId: string }
   | { screen: 'protocol'; protocolId: string; from: Nav };
 
-export default function App() {
+function AppShell() {
   const [nav, setNav] = useState<Nav>({ screen: 'home' });
+  const { mode, colors } = useTheme();
 
   return (
-    <GestureHandlerRootView style={styles.root}>
-    <SafeAreaView style={styles.root}>
-      <StatusBar style="dark" />
+    <GestureHandlerRootView style={[styles.root, { backgroundColor: colors.bg }]}>
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.bg }]}>
+      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
       {nav.screen === 'home' && (
         <HomeScreen
           onOpenCategory={(categoryId) => setNav({ screen: 'category', categoryId })}
@@ -50,6 +51,14 @@ export default function App() {
   );
 }
 
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppShell />
+    </ThemeProvider>
+  );
+}
+
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.colors.bg },
+  root: { flex: 1 },
 });

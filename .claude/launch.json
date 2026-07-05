@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "expo-go",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["expo", "start", "--go", "-c"],
+      "port": 8081
+    },
+    {
+      "name": "expo-go-tunnel",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["expo", "start", "--go", "-c", "--tunnel"],
+      "port": 8081
+    }
+  ]
+}

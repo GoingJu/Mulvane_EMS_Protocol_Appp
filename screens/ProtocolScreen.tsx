@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,14 @@ import {
   ScrollView,
   StyleSheet,
   useWindowDimensions,
+  BackHandler,
 } from 'react-native';
 import { findProtocol, findCategory } from '../data/protocols';
 import { PROTOCOL_PAGES } from '../data/pageMap';
 import { PAGE_IMAGES } from '../assets/pages';
 import PageViewer from '../components/PageViewer';
-import { theme } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { ThemeColors } from '../theme';
 
 const RATIO = 1650 / 1275; // height / width of the rendered pages
 
@@ -22,16 +24,29 @@ type Props = {
 };
 
 export default function ProtocolScreen({ protocolId, onBack }: Props) {
+  const { colors, space, radius } = useTheme();
+  const styles = useMemo(() => makeStyles(colors, space, radius), [colors, space, radius]);
+
   const hit = findProtocol(protocolId);
   const category = hit ? findCategory(hit.categoryId) : undefined;
-  const accent = category?.accent ?? theme.colors.primary;
+  const accent = category?.accent ?? colors.primary;
   const pages = PROTOCOL_PAGES[protocolId] ?? [];
 
   const { width } = useWindowDimensions();
-  const imgW = width - theme.space(8);
+  const imgW = width - space(8);
   const imgH = imgW * RATIO;
 
   const [viewerStart, setViewerStart] = useState<number | null>(null);
+
+  // The page viewer's own Modal already handles Android back to close itself
+  // (onRequestClose); this only fires when the viewer isn't open.
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      onBack();
+      return true;
+    });
+    return () => sub.remove();
+  }, [onBack]);
 
   if (!hit) {
     return (
@@ -99,48 +114,50 @@ export default function ProtocolScreen({ protocolId, onBack }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.bg },
-  header: { paddingTop: theme.space(12), padding: theme.space(4) },
-  back: { color: '#ffffffdd', fontSize: 16, marginBottom: theme.space(2) },
-  crumb: { color: '#ffffffcc', fontSize: 13 },
-  title: { color: '#fff', fontSize: 24, fontWeight: '800', marginTop: theme.space(1) },
-  body: { padding: theme.space(4) },
-  disclaimer: {
-    backgroundColor: '#fef3c7',
-    borderRadius: theme.radius,
-    borderWidth: 1,
-    borderColor: '#fde68a',
-    padding: theme.space(3),
-    marginBottom: theme.space(4),
-  },
-  disclaimerText: { fontSize: 12.5, lineHeight: 18, color: '#92400e' },
-  pageCard: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    padding: theme.space(2),
-    marginBottom: theme.space(4),
-    alignItems: 'center',
-  },
-  pageLabel: {
-    fontSize: 12,
-    color: theme.colors.muted,
-    paddingTop: theme.space(2),
-  },
-  placeholder: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    padding: theme.space(5),
-  },
-  placeholderTitle: { fontSize: 18, fontWeight: '700', color: theme.colors.text },
-  placeholderText: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: theme.colors.muted,
-    marginTop: theme.space(2),
-  },
-});
+function makeStyles(colors: ThemeColors, space: (n: number) => number, radius: number) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.bg },
+    header: { paddingTop: space(12), padding: space(4) },
+    back: { color: '#ffffffdd', fontSize: 16, marginBottom: space(2) },
+    crumb: { color: '#ffffffcc', fontSize: 13 },
+    title: { color: '#fff', fontSize: 24, fontWeight: '800', marginTop: space(1) },
+    body: { padding: space(4) },
+    disclaimer: {
+      backgroundColor: '#fef3c7',
+      borderRadius: radius,
+      borderWidth: 1,
+      borderColor: '#fde68a',
+      padding: space(3),
+      marginBottom: space(4),
+    },
+    disclaimerText: { fontSize: 12.5, lineHeight: 18, color: '#92400e' },
+    pageCard: {
+      backgroundColor: colors.card,
+      borderRadius: radius,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: space(2),
+      marginBottom: space(4),
+      alignItems: 'center',
+    },
+    pageLabel: {
+      fontSize: 12,
+      color: colors.muted,
+      paddingTop: space(2),
+    },
+    placeholder: {
+      backgroundColor: colors.card,
+      borderRadius: radius,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: space(5),
+    },
+    placeholderTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
+    placeholderText: {
+      fontSize: 15,
+      lineHeight: 22,
+      color: colors.muted,
+      marginTop: space(2),
+    },
+  });
+}

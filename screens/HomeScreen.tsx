@@ -10,7 +10,8 @@ import {
 import { CATEGORIES, SEARCH_INDEX, SearchHit } from '../data/protocols';
 import { PROTOCOL_TEXT } from '../data/searchText';
 import SearchBar from '../components/SearchBar';
-import { theme } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { ThemeColors } from '../theme';
 
 type Snippet = { before: string; match: string; after: string };
 type Result = { hit: SearchHit; snippet: Snippet | null };
@@ -36,6 +37,8 @@ type Props = {
 
 export default function HomeScreen({ onOpenCategory, onOpenProtocol }: Props) {
   const [query, setQuery] = useState('');
+  const { colors, space, radius, mode, toggle } = useTheme();
+  const styles = useMemo(() => makeStyles(colors, space, radius), [colors, space, radius]);
 
   const results = useMemo<Result[]>(() => {
     const q = query.trim().toLowerCase();
@@ -58,14 +61,20 @@ export default function HomeScreen({ onOpenCategory, onOpenProtocol }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* Official Mulvane EMS logo (extracted from the protocols PDF) */}
-      <View style={styles.logoBox}>
-        <Image
-          source={require('../assets/logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.logoSub}>Field Protocols</Text>
+      <View style={styles.topBar}>
+        <View style={styles.topBarSpacer} />
+        {/* Official Mulvane EMS logo (extracted from the protocols PDF) */}
+        <View style={styles.logoBox}>
+          <Image
+            source={require('../assets/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.logoSub}>Field Protocols</Text>
+        </View>
+        <Pressable onPress={toggle} hitSlop={10} style={styles.themeToggle}>
+          <Text style={styles.themeToggleIcon}>{mode === 'dark' ? '☀️' : '🌙'}</Text>
+        </Pressable>
       </View>
 
       <SearchBar value={query} onChange={setQuery} />
@@ -121,30 +130,41 @@ export default function HomeScreen({ onOpenCategory, onOpenProtocol }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: theme.space(4) },
-  logoBox: { alignItems: 'center', paddingVertical: theme.space(5) },
-  logo: { width: 92, height: 74 },
-  logoSub: { fontSize: 15, color: theme.colors.muted, marginTop: theme.space(2) },
-  list: { marginTop: theme.space(4) },
-  categoryCard: {
-    borderRadius: theme.radius,
-    padding: theme.space(5),
-    marginBottom: theme.space(3),
-  },
-  categoryTitle: { color: '#fff', fontSize: 22, fontWeight: '700' },
-  categorySub: { color: '#ffffffcc', fontSize: 14, marginTop: theme.space(1) },
-  resultRow: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    padding: theme.space(4),
-    marginBottom: theme.space(2),
-  },
-  resultTitle: { fontSize: 17, fontWeight: '600', color: theme.colors.text },
-  resultMeta: { fontSize: 13, color: theme.colors.muted, marginTop: theme.space(1) },
-  snippet: { fontSize: 13, color: theme.colors.muted, marginTop: theme.space(2), lineHeight: 18 },
-  snippetMatch: { backgroundColor: '#fde68a', color: '#111827', fontWeight: '700' },
-  empty: { textAlign: 'center', color: theme.colors.muted, marginTop: theme.space(6) },
-});
+function makeStyles(colors: ThemeColors, space: (n: number) => number, radius: number) {
+  return StyleSheet.create({
+    container: { flex: 1, padding: space(4) },
+    topBar: { flexDirection: 'row', alignItems: 'center', paddingTop: space(5) },
+    topBarSpacer: { width: 40 },
+    logoBox: { flex: 1, alignItems: 'center' },
+    logo: { width: 92, height: 74 },
+    logoSub: { fontSize: 15, color: colors.muted, marginTop: space(2) },
+    themeToggle: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    themeToggleIcon: { fontSize: 20 },
+    list: { marginTop: space(4) },
+    categoryCard: {
+      borderRadius: radius,
+      padding: space(5),
+      marginBottom: space(3),
+    },
+    categoryTitle: { color: '#fff', fontSize: 22, fontWeight: '700' },
+    categorySub: { color: '#ffffffcc', fontSize: 14, marginTop: space(1) },
+    resultRow: {
+      backgroundColor: colors.card,
+      borderRadius: radius,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: space(4),
+      marginBottom: space(2),
+    },
+    resultTitle: { fontSize: 17, fontWeight: '600', color: colors.text },
+    resultMeta: { fontSize: 13, color: colors.muted, marginTop: space(1) },
+    snippet: { fontSize: 13, color: colors.muted, marginTop: space(2), lineHeight: 18 },
+    snippetMatch: { backgroundColor: '#fde68a', color: '#111827', fontWeight: '700' },
+    empty: { textAlign: 'center', color: colors.muted, marginTop: space(6) },
+  });
+}
