@@ -12,6 +12,10 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
   against the text *inside* each protocol (not just titles), showing a highlighted
   snippet of the match. Title matches are listed first. Built offline from the PDF
   text via `scripts/build_search_index.py` → `data/searchText.ts`.
+- **Dark/light mode.** Toggle (sun/moon icon on the Home screen) switches the
+  whole app between light and dark palettes. Defaults to the phone's system
+  scheme on first launch, then remembers your explicit choice (`ThemeContext` +
+  `@react-native-async-storage/async-storage`).
 - App icon, Android adaptive icon, and splash screen generated from the
   high-resolution Mulvane EMS logo.
 - Store identity in `app.json`: iOS `bundleIdentifier` and Android `package`
@@ -27,9 +31,17 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
   `babel-preset-expo` as a dependency.
 - Runtime TurboModule crash in Expo Go — pinned `react-native-worklets` to 0.5.1
   to match the version bundled in Expo Go SDK 54.
+- **Pinch-to-zoom lag.** Pinch/pan were waiting behind the double-tap gesture's
+  ~500ms failure window (`Gesture.Exclusive`); switched to `Gesture.Race` so
+  they activate immediately.
+- **Android hardware back button** now navigates the app's own screen stack
+  (protocol → category → home) instead of exiting the app.
+- `expo start` no longer demands `react-dom`/`react-native-web` on every
+  launch — removed a stray, unused `web` config block from `app.json` left
+  over from the initial scaffold.
 
-_Planned: favorites & recently-viewed, night/dark mode, an "open already zoomed"
-option, optional OCR of image-only algorithm pages for search._
+_Planned: favorites & recently-viewed, an "open already zoomed" option,
+optional OCR of image-only algorithm pages for search._
 
 ## [0.1.0] - 2026-06-11
 

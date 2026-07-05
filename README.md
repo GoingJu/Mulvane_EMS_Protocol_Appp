@@ -114,7 +114,6 @@ page in `scripts/protocol_start_pages.json` before re-running the script).
 
 - True in-list pinch-zoom / open-already-zoomed option
 - Favorites & recently-viewed
-- Night/dark mode
 - Proper app icon + splash from a high-resolution logo
 
 See [`CHANGELOG.md`](CHANGELOG.md) for what's shipped so far.
